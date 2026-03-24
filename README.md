@@ -1,4 +1,4 @@
-# 🌍 Country Explorer
+# 🌍 World Explorer
 
 A web application to explore countries and view basic information using a public API.
 
