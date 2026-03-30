@@ -34,11 +34,3 @@ https://restcountries.com/v3.1/all?fields=name,flags,capital,region,population
 * JavaScript (Fetch API)
 
 ---
-
-## ▶️ How to Run
-
-1. Clone the repository
-2. Open the project folder
-3. Open `index.html` in your browser
-
----
