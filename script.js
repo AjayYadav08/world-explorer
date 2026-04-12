@@ -1,41 +1,69 @@
-var allCountries = [];
+let allCountries = [];
+const flagTrack = document.getElementById('flagTrack');
 
-var searchInput = document.getElementById('searchInput');
-var regionFilter = document.getElementById('regionFilter');
-var messageDiv = document.getElementById('message');
-var gridDiv = document.getElementById('countriesGrid');
-var sortOrder = document.getElementById('sortOrder');
+const searchInput = document.getElementById('searchInput');
+const regionFilter = document.getElementById('regionFilter');
+const messageDiv = document.getElementById('message');
+const gridDiv = document.getElementById('countriesGrid');
+const sortOrder = document.getElementById('sortOrder');
 
 searchInput.oninput = filterCountries;
 regionFilter.onchange = filterCountries;
 sortOrder.onchange = filterCountries;
 
 fetch('https://restcountries.com/v3.1/all?fields=name,flags,capital,region,population')
-    .then(function (response) {
-        return response.json();
-    })
-    .then(function (data) {
+    .then(response => response.json())
+    .then(data => {
         allCountries = data;
         messageDiv.style.display = 'none';
+        initializeFlagTicker();
         filterCountries();
     })
-    .catch(function (error) {
+    .catch(error => {
         messageDiv.innerText = 'Error loading countries.';
     });
 
+function initializeFlagTicker() {
+    let flagHtml = '';
+
+    for (let i = 0; i < allCountries.length; i++) {
+        const country = allCountries[i];
+
+        if (!country.flags) {
+            console.warn('No flags object for:', country.name.common);
+            continue;
+        }
+
+        const flagUrl = country.flags.svg || country.flags.png;
+
+        if (!flagUrl) {
+            continue;
+        }
+
+        const countryName = country.name.common;
+
+        flagHtml += `<div class="flag-item">
+            <img src="${flagUrl}" alt="Flag of ${countryName}" title="${countryName}">
+        </div>`;
+    }
+
+    flagTrack.innerHTML = flagHtml;
+}
+
 function filterCountries() {
-    var searchText = searchInput.value.toLowerCase();
-    var regionText = regionFilter.value;
+    const searchText = searchInput.value.toLowerCase();
+    const regionText = regionFilter.value;
 
-    var filtered = [];
+    const filtered = [];
 
-    for (var i = 0; i < allCountries.length; i++) {
-        var country = allCountries[i];
-        var name = country.name.common.toLowerCase();
-        var region = country.region ? country.region : '';
+    for (let i = 0; i < allCountries.length; i++) {
+        const country = allCountries[i];
+        const name = country.name.common.toLowerCase();
+        const region = country.region ? country.region : '';
 
-        var matchesSearch = name.indexOf(searchText) !== -1;
-        var matchesRegion = regionText === '';
+        const matchesSearch = name.includes(searchText);
+
+        let matchesRegion = true;
         if (regionText !== '') {
             matchesRegion = region === regionText;
         }
@@ -45,22 +73,18 @@ function filterCountries() {
         }
     }
 
-    var sortVal = sortOrder.value;
+    const sortVal = sortOrder.value;
     if (sortVal === 'asc') {
-        filtered.sort(function(a, b) {
-            return a.name.common.localeCompare(b.name.common);
-        });
+        filtered.sort((a, b) => a.name.common.localeCompare(b.name.common));
     } else if (sortVal === 'desc') {
-        filtered.sort(function(a, b) {
-            return b.name.common.localeCompare(a.name.common);
-        });
+        filtered.sort((a, b) => b.name.common.localeCompare(a.name.common));
     }
 
     renderCountries(filtered);
 }
 
 function renderCountries(countries) {
-    var htmlContent = '';
+    let htmlContent = '';
 
     if (countries.length === 0) {
         messageDiv.innerText = 'No countries found.';
@@ -71,27 +95,30 @@ function renderCountries(countries) {
         messageDiv.style.display = 'none';
     }
 
-    for (var i = 0; i < countries.length; i++) {
-        var country = countries[i];
-        var capital = 'N/A';
+    for (let i = 0; i < countries.length; i++) {
+        const country = countries[i];
+
+        let capital = 'N/A';
         if (country.capital && country.capital.length > 0) {
             capital = country.capital[0];
         }
 
-        var flagUrl = country.flags.svg;
+        let flagUrl = country.flags.svg;
         if (!flagUrl) {
             flagUrl = country.flags.png;
         }
 
-        htmlContent += '<div class="card">' +
-            '<img class="flag" src="' + flagUrl + '" alt="Flag of ' + country.name.common + '">' +
-            '<div class="info">' +
-            '<h2>' + country.name.common + '</h2>' +
-            '<p><b>Population:</b> ' + country.population.toLocaleString() + '</p>' +
-            '<p><b>Region:</b> ' + country.region + '</p>' +
-            '<p><b>Capital:</b> ' + capital + '</p>' +
-            '</div>' +
-            '</div>';
+        htmlContent += `
+            <div class="card">
+                <img class="flag" src="${flagUrl}" alt="Flag of ${country.name.common}">
+                <div class="info">
+                    <h2>${country.name.common}</h2>
+                    <p><b>Population:</b> ${country.population.toLocaleString()}</p>
+                    <p><b>Region:</b> ${country.region}</p>
+                    <p><b>Capital:</b> ${capital}</p>
+                </div>
+            </div>
+        `;
     }
 
     gridDiv.innerHTML = htmlContent;
